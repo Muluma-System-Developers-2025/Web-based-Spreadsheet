@@ -5,6 +5,11 @@ import "./App.css";
 const STATUSES = ["Pending", "In Progress", "Completed"];
 
 export default function App() {
+  // User availability 
+  const [isAvailable, setIsAvailable] = useState(() => {
+    const saved = localStorage.getItem("isAvailable");
+    return saved ? JSON.parse(saved) : true;
+  });
   const [tasks, setTasks] = useState(() => {
     const saved = localStorage.getItem("tasks");
     return saved ? JSON.parse(saved) : [];
@@ -13,12 +18,17 @@ export default function App() {
   const [text, setText] = useState("");
   const [due, setDue] = useState("");
 
-  // Persist to localStorage
+  // Persist to the localStorage
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
 
-  // Derived counts
+  // Persist availability
+  useEffect(() => {
+    localStorage.setItem("isAvailable", JSON.stringify(isAvailable));
+  }, [isAvailable]);
+
+  
   const overdueCount = useMemo(
     () =>
       tasks.filter(
@@ -48,6 +58,9 @@ export default function App() {
   }
 
   function setStatus(id, status) {
+    if (status === "Completed") {
+      if (!window.confirm("Mark this task as completed?")) return;
+    }
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
   }
 
@@ -127,6 +140,19 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      {/* User Availability Section */}
+      <div className="availabilityBar">
+        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="checkbox"
+            checked={isAvailable}
+            onChange={() => setIsAvailable((v) => !v)}
+            style={{ marginRight: 8 }}
+          />
+          {isAvailable ? "You are available" : "You are not available"}
+        </label>
+      </div>
 
       {overdueCount > 0 && (
         <div className="banner warning">
